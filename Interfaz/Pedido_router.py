@@ -10,3 +10,6 @@ def crear_pedido(id: int, cliente: str, ubicacion:str,comidas:str):
     nuevo = Pedido(id, cliente,ubicacion,comidas)
     pedidos.append(nuevo)
     return {"mensaje": f"Pedido {id} creado correctamente"}
+
+
+9
