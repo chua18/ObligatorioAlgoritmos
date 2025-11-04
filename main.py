@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
-from utils.get_type_message import get_message_type
+from utils.get_message_type import get_message_type
 
 app = FastAPI()
 
@@ -65,6 +65,6 @@ async def received_message(request: Request):
         # para evitar reintentos continuos, aunque se debe registrar el error.
         return "EVENT_RECEIVED"
     
-    if __name__ == "__main__":
-        import uvicorn 
-        uvicorn.run(app,host="0.0.0.0",port=8000)
+if __name__ == "__main__":
+    import uvicorn 
+    uvicorn.run(app,host="0.0.0.0",port=8000)
