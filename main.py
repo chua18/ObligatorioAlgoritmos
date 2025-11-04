@@ -64,3 +64,7 @@ async def received_message(request: Request):
         # En caso de error, todavía se recomienda devolver una respuesta de éxito (200)
         # para evitar reintentos continuos, aunque se debe registrar el error.
         return "EVENT_RECEIVED"
+    
+    if __name__ == "__main__":
+        import uvicorn 
+        uvicorn.run(app,host="0.0.0.0",port=8000)
