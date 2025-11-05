@@ -1,7 +1,75 @@
 from fastapi import FastAPI, HTTPException, Request
 from utils.get_message_type import get_message_type
 
+# --- NUEVO ---
+import os
+import logging
+from typing import Any, Dict, List
+import requests
+
+from menu import menu_categories  # <- categorías desde menu.py
+
 app = FastAPI()
+
+# ---------------- Helpers de MENÚ (NUEVO) ----------------
+def build_category_rows() -> List[Dict[str, Any]]:
+    rows: List[Dict[str, Any]] = []
+    # WhatsApp List: máx 10 filas por sección
+    for c in menu_categories[:10]:
+        rows.append({
+            "id": f"CAT_{c['id']}",
+            "title": c["title"],
+            "description": "Ver productos de esta categoría" if c["id"] != "Todos" else "Ver todo el catálogo"
+        })
+    return rows
+
+def build_list_message(to: str, body_text: str, rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    return {
+        "messaging_product": "whatsapp",
+        "to": to,
+        "type": "interactive",
+        "interactive": {
+            "type": "list",
+            "body": {"text": body_text},
+            "action": {
+                "button": "Ver menú",
+                "sections": [
+                    {"title": "Categorías", "rows": rows}
+                ]
+            }
+        }
+    }
+
+# --- NUEVO: credenciales y envío a WhatsApp ---
+WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN", "")          # Page Access Token
+WHATSAPP_PHONE_ID = os.getenv("WHATSAPP_PHONE_ID", "")    # phone_number_id
+GRAPH_SEND_URL = f"https://graph.facebook.com/v20.0/{WHATSAPP_PHONE_ID}/messages"
+
+def send_to_whatsapp(payload: Dict[str, Any]) -> None:
+    if not WHATSAPP_TOKEN or not WHATSAPP_PHONE_ID:
+        logging.warning("Falta WHATSAPP_TOKEN o WHATSAPP_PHONE_ID. (No se envía a la API, modo MOCK)")
+        logging.info(f"MOCK SEND => {payload}")
+        return
+    headers = {
+        "Authorization": f"Bearer {WHATSAPP_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    r = requests.post(GRAPH_SEND_URL, json=payload, headers=headers, timeout=15)
+    if r.status_code >= 300:
+        logging.error(f"Error al enviar a WhatsApp: {r.status_code} {r.text}")
+    else:
+        logging.info(f"Enviado a WhatsApp: {r.json()}")
+
+def send_menu(to: str, nombre: str = "Cliente") -> None:
+    rows = build_category_rows()
+    msg = build_list_message(
+        to=to,
+        body_text=f"Hola {nombre} 👋\nElegí una categoría para ver el menú:",
+        rows=rows
+    )
+    send_to_whatsapp(msg)
+# ---------------- FIN Helpers de MENÚ ----------------
+
 
 @app.get("/welcome")
 def index():
@@ -53,6 +121,13 @@ async def received_message(request: Request):
             # Extrae el número de teléfono del remitente
             number = message["from"]
             print(f"Mensaje recibido de {number}: Tipo: {type_message}, Contenido: {content}")
+
+            # --- NUEVO: obtener nombre del contacto si está disponible ---
+            contacts = value.get("contacts", [])
+            name = contacts[0].get("profile", {}).get("name", "Cliente") if contacts else "Cliente"
+
+            # --- NUEVO: responder con el menú ---
+            send_menu(number, name)
 
         # Aquí podrías agregar lógica adicional para procesar el mensaje recibido
         
