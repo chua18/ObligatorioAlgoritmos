@@ -1,52 +1,57 @@
+# bot/arbol_pedidos.py
+
+import random
+
 class NodoPedido:
-    def _init_(self, pedido):
+    def __init__(self, pedido):
         self.pedido = pedido
         self.izquierda = None
         self.derecha = None
 
 class ArbolPedidos:
-    def _init_(self):
+    def __init__(self):
         self.raiz = None
 
     def insertar(self, pedido):
         if not self.raiz:
             self.raiz = NodoPedido(pedido)
         else:
-            self._insertar(self.raiz, pedido)
+            self._insertar_recursivo(self.raiz, pedido)
 
-    def _insertar(self, nodo_actual, pedido):
-        if pedido.distancia < nodo_actual.pedido.distancia:
-            if nodo_actual.izquierda is None:
-                nodo_actual.izquierda = NodoPedido(pedido)
+    def _insertar_recursivo(self, nodo, pedido):
+        if pedido.distancia < nodo.pedido.distancia:
+            if nodo.izquierda is None:
+                nodo.izquierda = NodoPedido(pedido)
             else:
-                self._insertar(nodo_actual.izquierda, pedido)
+                self._insertar_recursivo(nodo.izquierda, pedido)
         else:
-            if nodo_actual.derecha is None:
-                nodo_actual.derecha = NodoPedido(pedido)
+            if nodo.derecha is None:
+                nodo.derecha = NodoPedido(pedido)
             else:
-                self._insertar(nodo_actual.derecha, pedido)
+                self._insertar_recursivo(nodo.derecha, pedido)
 
     def recorrido_inorden(self):
         pedidos = []
-        self._inorden(self.raiz, pedidos)
+        self._recorrido_inorden_recursivo(self.raiz, pedidos)
         return pedidos
 
-    def _inorden(self, nodo, pedidos):
+    def _recorrido_inorden_recursivo(self, nodo, pedidos):
         if nodo:
-            self._inorden(nodo.izquierda, pedidos)
+            self._recorrido_inorden_recursivo(nodo.izquierda, pedidos)
             pedidos.append(nodo.pedido)
-            self._inorden(nodo.derecha, pedidos)
+            self._recorrido_inorden_recursivo(nodo.derecha, pedidos)
 
     def eliminar(self, codigo):
-        self.raiz = self._eliminar(self.raiz, codigo)
+        """Elimina un pedido del árbol (cuando el delivery lo entrega)"""
+        self.raiz = self._eliminar_recursivo(self.raiz, codigo)
 
-    def _eliminar(self, nodo, codigo):
+    def _eliminar_recursivo(self, nodo, codigo):
         if nodo is None:
             return nodo
         if codigo < nodo.pedido.codigo:
-            nodo.izquierda = self._eliminar(nodo.izquierda, codigo)
+            nodo.izquierda = self._eliminar_recursivo(nodo.izquierda, codigo)
         elif codigo > nodo.pedido.codigo:
-            nodo.derecha = self._eliminar(nodo.derecha, codigo)
+            nodo.derecha = self._eliminar_recursivo(nodo.derecha, codigo)
         else:
             if nodo.izquierda is None:
                 return nodo.derecha
@@ -54,7 +59,7 @@ class ArbolPedidos:
                 return nodo.izquierda
             temp = self._min_value_node(nodo.derecha)
             nodo.pedido = temp.pedido
-            nodo.derecha = self._eliminar(nodo.derecha, temp.pedido.codigo)
+            nodo.derecha = self._eliminar_recursivo(nodo.derecha, temp.pedido.codigo)
         return nodo
 
     def _min_value_node(self, nodo):
