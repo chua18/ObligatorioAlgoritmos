@@ -1,4 +1,3 @@
-# bot/grafo.py
 
 import math
 

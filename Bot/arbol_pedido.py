@@ -1,6 +1,3 @@
-# bot/arbol_pedidos.py
-
-import random
 
 class NodoPedido:
     def __init__(self, pedido):
