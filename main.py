@@ -4,8 +4,9 @@ from utils.get_message_type import get_message_type
 # --- NUEVO ---
 import os
 import logging
+import httpx
 from typing import Any, Dict, List
-import requests
+
 
 from Menu import menu_categorias  # <- categorías desde menu.py
 
@@ -45,22 +46,32 @@ WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN", "")          # Page Access Token
 WHATSAPP_PHONE_ID = os.getenv("WHATSAPP_PHONE_ID", "")    # phone_number_id
 GRAPH_SEND_URL = f"https://graph.facebook.com/v20.0/{WHATSAPP_PHONE_ID}/messages"
 
-def send_to_whatsapp(payload: Dict[str, Any]) -> None:
+
+async def send_to_whatsapp(payload: Dict[str, Any]) -> None:
+    """Envía un mensaje a la API de WhatsApp usando httpx (async)."""
     if not WHATSAPP_TOKEN or not WHATSAPP_PHONE_ID:
         logging.warning("Falta WHATSAPP_TOKEN o WHATSAPP_PHONE_ID. (No se envía a la API, modo MOCK)")
         logging.info(f"MOCK SEND => {payload}")
         return
+
     headers = {
         "Authorization": f"Bearer {WHATSAPP_TOKEN}",
         "Content-Type": "application/json"
     }
-    r = requests.post(GRAPH_SEND_URL, json=payload, headers=headers, timeout=15)
-    if r.status_code >= 300:
-        logging.error(f"Error al enviar a WhatsApp: {r.status_code} {r.text}")
-    else:
-        logging.info(f"Enviado a WhatsApp: {r.json()}")
 
-def send_menu(to: str, nombre: str = "Cliente") -> None:
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        try:
+            response = await client.post(GRAPH_SEND_URL, json=payload, headers=headers)
+            if response.status_code >= 300:
+                logging.error(f"Error al enviar a WhatsApp: {response.status_code} {response.text}")
+            else:
+                logging.info(f"Enviado a WhatsApp: {response.json()}")
+        except httpx.RequestError as e:
+            logging.error(f"Error de conexión al enviar a WhatsApp: {e}")
+
+
+async def send_menu(to: str, nombre: str = "Cliente") -> None:
+    """Envía el menú principal al usuario."""
     rows = build_category_rows()
     msg = build_list_message(
         to=to,
@@ -68,7 +79,7 @@ def send_menu(to: str, nombre: str = "Cliente") -> None:
         rows=rows
     )
     print(f"payload del menu:\n{msg}")
-    send_to_whatsapp(msg)
+    await send_to_whatsapp(msg)
 # ---------------- FIN Helpers de MENÚ ----------------
 
 
