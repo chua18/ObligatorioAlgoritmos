@@ -7,7 +7,7 @@ import logging
 from typing import Any, Dict, List
 import requests
 
-from menu import menu_categories  # <- categorías desde menu.py
+from Menu import menu_categorias  # <- categorías desde menu.py
 
 app = FastAPI()
 
@@ -15,7 +15,7 @@ app = FastAPI()
 def build_category_rows() -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     # WhatsApp List: máx 10 filas por sección
-    for c in menu_categories[:10]:
+    for c in menu_categorias[:10]:
         rows.append({
             "id": f"CAT_{c['id']}",
             "title": c["title"],
@@ -67,6 +67,7 @@ def send_menu(to: str, nombre: str = "Cliente") -> None:
         body_text=f"Hola {nombre} 👋\nElegí una categoría para ver el menú:",
         rows=rows
     )
+    print(f"payload del menu:\n{msg}")
     send_to_whatsapp(msg)
 # ---------------- FIN Helpers de MENÚ ----------------
 
