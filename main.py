@@ -139,7 +139,7 @@ async def received_message(request: Request):
             name = contacts[0].get("profile", {}).get("name", "Cliente") if contacts else "Cliente"
 
             # --- NUEVO: responder con el menú ---
-            send_menu(number, name)
+            await send_menu(number, name)
 
         # Aquí podrías agregar lógica adicional para procesar el mensaje recibido
         
