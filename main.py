@@ -42,8 +42,8 @@ def build_list_message(to: str, body_text: str, rows: List[Dict[str, Any]]) -> D
     }
 
 # --- NUEVO: credenciales y envío a WhatsApp ---
-ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN", "")          # Page Access Token
-PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_ID", "")    # phone_number_id
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", "")          # Page Access Token
+PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID", "")    # phone_number_id
 GRAPH_SEND_URL = f"https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages"
 
 
