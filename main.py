@@ -8,7 +8,7 @@ import httpx
 from typing import Any, Dict, List
 
 
-from Menu import menu_categorias  # <- categorías desde menu.py
+from Menu import menuCompleto  # <- categorías desde menu.py
 
 app = FastAPI()
 
@@ -16,7 +16,7 @@ app = FastAPI()
 def build_category_rows() -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     # WhatsApp List: máx 10 filas por sección
-    for c in menu_categorias[:10]:
+    for c in menuCompleto[:10]:
         rows.append({
             "id": f"CAT_{c['id']}",
             "title": c["title"],
