@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import  Dict, List
 
 menu_categorias: List[Dict[str, str]] = [
         {"id": "1",  "title": "Doble chesse",       "price": 320, "category": "Hamburguesas", "description": "Pan de papa, doble carne, cheddar, cebolla y ketchup"},
@@ -30,4 +30,3 @@ menu_categorias: List[Dict[str, str]] = [
         {"id": "27", "title": "Chocotorta",    "price": 220, "category": "Postres", "description": "Clásica cremosa"},
         {"id": "28", "title": "Tiramisú",      "price": 250, "category": "Postres", "description": "Estilo italiano"},
     ]
-ALL_ITEMS: List[Dict[str, Any]] = [p for grupo in menu_items.values() for p in grupo]
