@@ -42,20 +42,20 @@ def build_list_message(to: str, body_text: str, rows: List[Dict[str, Any]]) -> D
     }
 
 # --- NUEVO: credenciales y envío a WhatsApp ---
-WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN", "")          # Page Access Token
-WHATSAPP_PHONE_ID = os.getenv("WHATSAPP_PHONE_ID", "")    # phone_number_id
-GRAPH_SEND_URL = f"https://graph.facebook.com/v20.0/{WHATSAPP_PHONE_ID}/messages"
+ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN", "")          # Page Access Token
+PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_ID", "")    # phone_number_id
+GRAPH_SEND_URL = f"https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages"
 
 
 async def send_to_whatsapp(payload: Dict[str, Any]) -> None:
     """Envía un mensaje a la API de WhatsApp usando httpx (async)."""
-    if not WHATSAPP_TOKEN or not WHATSAPP_PHONE_ID:
+    if not ACCESS_TOKEN or not PHONE_NUMBER_ID:
         logging.warning("Falta WHATSAPP_TOKEN o WHATSAPP_PHONE_ID. (No se envía a la API, modo MOCK)")
         logging.info(f"MOCK SEND => {payload}")
         return
 
     headers = {
-        "Authorization": f"Bearer {WHATSAPP_TOKEN}",
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
         "Content-Type": "application/json"
     }
 
