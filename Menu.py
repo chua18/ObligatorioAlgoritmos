@@ -1,6 +1,6 @@
 from typing import  Dict, List
 
-menu_categorias: List[Dict[str, str]] = [
+menuCompleto: List[Dict[str, str]] = [
         {"id": "1",  "title": "Doble chesse",       "price": 320, "category": "Hamburguesas", "description": "Pan de papa, doble carne, cheddar, cebolla y ketchup"},
         {"id": "2",  "title": "Chillout",           "price": 390, "category": "Hamburguesas", "description": "Doble carne, cheddar, panceta, cebolla caramelizada y barbacoa"},
         {"id": "3",  "title": "Bunker",             "price": 450, "category": "Hamburguesas", "description": "Triple carne, cheddar, panceta, huevo, aros, mil islas"},
