@@ -16,7 +16,7 @@ app = FastAPI()
 def build_category_rows() -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     # WhatsApp List: máx 10 filas por sección
-    for c in menuCompleto[:10]:
+    for c in menuCompleto[:5]:
         rows.append({
             "id": f"CAT_{c['id']}",
             "title": c["title"],
