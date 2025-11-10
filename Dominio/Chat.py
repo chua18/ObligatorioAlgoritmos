@@ -62,8 +62,8 @@ class Chat:
                         "rows": [
                             {"id": "prev_page", "title": "⬅️ Página anterior"},
                             {"id": "next_page", "title": "➡️ Página siguiente"},
-                            {"id": "ordenar_menor", "title": "🔼 Ordenar por precio (menor a mayor)"},
-                            {"id": "ordenar_mayor", "title": "🔽 Ordenar por precio (mayor a menor)"},
+                            {"id": "ordenar_menor", "title": "🔼 Ordenar menor a mayor"},
+                            {"id": "ordenar_mayor", "title": "🔽 Ordenar mayor a menor"},
                             {"id": "filtrar_categoria", "title": "📂 Filtrar por categoría"},
                         ]
                     }
