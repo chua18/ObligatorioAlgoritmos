@@ -3,12 +3,13 @@ from Menu import menuCompleto
 
 PAGE_SIZE = 5  # cantidad de productos por página
 
+
 def get_paginated_menu(page: int = 1, category: str = None) -> List[Dict[str, Any]]:
     resultados = menuCompleto
 
     # Filtrar por categoría si se pasa
     if category:
-        resultados = [item for item in resultados if item["category"].lower() == category.lower()]
+        resultados = [item for item in resultados if item["categoria"].lower() == category.lower()]
 
     # Paginación
     start = (page - 1) * PAGE_SIZE
@@ -22,30 +23,50 @@ class Chat:
     def __init__(self):
         self.pagina_Actual = 1
         self.categoria_Actual = None  # sin filtro por defecto
+        self.orden_por_precio = None  # puede ser 'asc' o 'desc'
 
     def generar_mensaje_menu(self) -> Dict[str, Any]:
         productos = get_paginated_menu(self.pagina_Actual, self.categoria_Actual)
 
-        # Texto del mensaje
-        texto = "🍔 *Menú disponible:*\n\n"
-        if not productos:
-            texto += "No hay productos en esta categoría.\n"
-        else:
-            for p in productos:
-                texto += f"- {p['nombre']} (${p['precio']})\n"
+        # Ordenar por precio si corresponde
+        if self.orden_por_precio == "asc":
+            productos.sort(key=lambda x: x["precio"])
+        elif self.orden_por_precio == "desc":
+            productos.sort(key=lambda x: x["precio"], reverse=True)
 
-        texto += f"\n📄 Página {self.pagina_Actual}"
-        if self.categoria_Actual:
-            texto += f" | Filtro: {self.categoria_Actual.title()}"
+        # Texto principal del cuerpo
+        texto = "🍔 *Menú disponible:*\nSeleccioná un producto o una acción.\n"
 
-        # Botones
+        # Construcción del mensaje tipo lista
         botones = {
-            "type": "button",
+            "type": "list",
+            "header": {"type": "text", "text": "Menú de productos"},
             "body": {"text": texto},
+            "footer": {"text": f"📄 Página {self.pagina_Actual}"},
             "action": {
-                "buttons": [
-                    {"type": "reply", "reply": {"id": "prev_page", "title": "⬅️ Anterior"}},
-                    {"type": "reply", "reply": {"id": "next_page", "title": "➡️ Siguiente"}}
+                "button": "Ver opciones",
+                "sections": [
+                    {
+                        "title": "Productos disponibles",
+                        "rows": [
+                            {
+                                "id": f"producto_{p['id']}",
+                                "title": p["nombre"],
+                                "description": f"${p['precio']}"
+                            }
+                            for p in productos
+                        ]
+                    },
+                    {
+                        "title": "Acciones",
+                        "rows": [
+                            {"id": "prev_page", "title": "⬅️ Página anterior"},
+                            {"id": "next_page", "title": "➡️ Página siguiente"},
+                            {"id": "ordenar_menor", "title": "🔼 Ordenar por precio (menor a mayor)"},
+                            {"id": "ordenar_mayor", "title": "🔽 Ordenar por precio (mayor a menor)"},
+                            {"id": "filtrar_categoria", "title": "📂 Filtrar por categoría"},
+                        ]
+                    }
                 ]
             }
         }
@@ -53,14 +74,21 @@ class Chat:
         return botones
 
     def manejar_accion(self, accion_id: str, category: str = None):
-        # Manejo de acciones de los botones
+        # Acciones del usuario
         if accion_id == "next_page":
             self.pagina_Actual += 1
         elif accion_id == "prev_page" and self.pagina_Actual > 1:
             self.pagina_Actual -= 1
+        elif accion_id == "ordenar_menor":
+            self.orden_por_precio = "asc"
+        elif accion_id == "ordenar_mayor":
+            self.orden_por_precio = "desc"
         elif accion_id.startswith("filtro_"):  # ejemplo: filtro_postres
             self.categoria_Actual = accion_id.replace("filtro_", "")
-            self.pagina_Actual = 1  # reiniciamos la paginación
+            self.pagina_Actual = 1
+        elif accion_id.startswith("producto_"):
+            producto_id = int(accion_id.replace("producto_", ""))
+            return {"mensaje": f"🛒 Agregaste el producto con ID {producto_id} al carrito."}
 
-        # Retorna el mensaje actualizado
+        # Retorna el mensaje actualizado del menú
         return self.generar_mensaje_menu()
