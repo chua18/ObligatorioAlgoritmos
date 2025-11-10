@@ -1,21 +1,23 @@
 def get_message_type(message):
-    content = ""
-    message_type = message["type"]
+    """
+    Devuelve una tupla (tipo, contenido) según el tipo de mensaje recibido.
+    Soporta texto normal, listas interactivas y botones.
+    """
+    type_message = message.get("type")
 
-    if message_type == "text":
-        content = message["text"]["body"]
+    # --- Caso 1: mensaje de texto ---
+    if type_message == "text":
+        return "text", message["text"]["body"]
 
-    elif message_type == "interactive":
-        interactive_object = message["interactive"]
-        interactive_type = interactive_object["type"]
+    # --- Caso 2: respuesta a lista interactiva ---
+    if type_message == "interactive":
+        interactive = message.get("interactive", {})
+        subtype = interactive.get("type")
 
-        if interactive_type == "button_reply":
-            content = interactive_object["button_reply"]["title"]
-        elif interactive_type == "list_reply":
-            content = interactive_object["list_reply"]["title"]
-        else:
-            print("sin mensaje")
-    else:
-        print("sin mensaje")
+        if subtype == "list_reply":
+            return "list_reply", interactive["list_reply"]["id"]
+        elif subtype == "button_reply":
+            return "button_reply", interactive["button_reply"]["id"]
 
-    return message_type, content
+    # --- Caso desconocido ---
+    return type_message, None
