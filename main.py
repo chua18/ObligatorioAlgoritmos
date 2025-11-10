@@ -2,13 +2,14 @@ from fastapi import FastAPI, HTTPException, Request
 from utils.get_message_type import get_message_type
 
 # --- NUEVO ---
+from Menu import menuCompleto
 import os
 import logging
 import httpx
 from typing import Any, Dict, List
-
-
-from Menu import menuCompleto  # <- categorías desde menu.py
+from Dominio.Chat import Chat
+chat = Chat()
+  # <- categorías desde menu.py
 
 app = FastAPI()
 
@@ -71,16 +72,20 @@ async def send_to_whatsapp(payload: Dict[str, Any]) -> None:
 
 
 async def send_menu(to: str, nombre: str = "Cliente") -> None:
-    """Envía el menú principal al usuario."""
-    rows = build_category_rows()
-    msg = build_list_message(
-        to=to,
-        body_text=f"Hola {nombre} 👋\nElegí una categoría para ver el menú:",
-        rows=rows
-    )
-    print(f"payload del menu:\n{msg}")
-    await send_to_whatsapp(msg)
-# ---------------- FIN Helpers de MENÚ ----------------
+    """Envía el menú actual (paginado) al usuario."""
+    # Genera el mensaje con los botones desde Chat
+    msg = chat.generar_mensaje_menu()
+
+    # Adaptamos para enviar a WhatsApp
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": to,
+        "type": "interactive",
+        "interactive": msg  # <- el diccionario que genera Chat
+    }
+
+    print(f"payload del menú paginado:\n{payload}")
+    await send_to_whatsapp(payload)
 
 
 @app.get("/welcome")
@@ -115,42 +120,46 @@ async def verify_token(request: Request):
 @app.post("/whatsapp")
 async def received_message(request: Request):
     try:
-        # Lee el cuerpo de la solicitud POST como JSON
         body = await request.json()
-
-        # Navegación básica en la estructura JSON del webhook de Meta
-        # La estructura puede variar, esto es un acceso inicial típico
         entry = body["entry"][0]
         changes = entry["changes"][0]
         value = changes["value"]
 
-        # Verifica si hay mensajes reales dentro de la carga útil
         if "messages" in value and len(value["messages"]) > 0:
-            # Extrae el primer mensaje de la lista de mensajes
-            type_message, content = get_message_type(value["messages"][0])
-            
             message = value["messages"][0]
-            # Extrae el número de teléfono del remitente
+            type_message, content = get_message_type(message)
             number = message["from"]
-            print(f"Mensaje recibido de {number}: Tipo: {type_message}, Contenido: {content}")
-
-            # --- NUEVO: obtener nombre del contacto si está disponible ---
             contacts = value.get("contacts", [])
             name = contacts[0].get("profile", {}).get("name", "Cliente") if contacts else "Cliente"
 
-            # --- NUEVO: responder con el menú ---
-            await send_menu(number, name)
+            print(f"Mensaje recibido de {number}: {content}")
 
-        # Aquí podrías agregar lógica adicional para procesar el mensaje recibido
-        
-        # Es crucial retornar un código HTTP 200 (implícito aquí)
-        # o un mensaje de éxito para que Meta no reintente el envío.
+            # --- acá entra la lógica de Chat ---
+            if content in ["➡️ Siguiente", "⬅️ Anterior"]:
+                # Mover página
+                if content == "➡️ Siguiente":
+                    nuevo_mensaje = chat.manejar_accion("next_page")
+                else:
+                    nuevo_mensaje = chat.manejar_accion("prev_page")
+                
+                payload = {
+                    "messaging_product": "whatsapp",
+                    "to": number,
+                    "type": "interactive",
+                    "interactive": nuevo_mensaje
+                }
+                await send_to_whatsapp(payload)
+            
+            else:
+                # Primer mensaje o texto cualquiera → mostrar menú inicial
+                await send_menu(number, name)
+
         return "EVENT_RECEIVED"
 
-    except Exception:
-        # En caso de error, todavía se recomienda devolver una respuesta de éxito (200)
-        # para evitar reintentos continuos, aunque se debe registrar el error.
+    except Exception as e:
+        print("Error en /whatsapp:", e)
         return "EVENT_RECEIVED"
+
     
 if __name__ == "__main__":
     import uvicorn 
