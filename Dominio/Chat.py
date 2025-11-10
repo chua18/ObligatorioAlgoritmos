@@ -40,7 +40,7 @@ class Chat:
 
         # Botones
         botones = {
-            "type": "interactive",
+            "type": "button",
             "body": {"text": texto},
             "action": {
                 "buttons": [
