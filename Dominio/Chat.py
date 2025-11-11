@@ -3,7 +3,6 @@ from Menu import menuCompleto
 
 PAGE_SIZE = 5  # cantidad de productos por página
 
-
 def get_paginated_menu(page: int = 1, category: str = None) -> List[Dict[str, Any]]:
     resultados = menuCompleto
 
@@ -62,14 +61,20 @@ class Chat:
                         "rows": [
                             {"id": "prev_page", "title": "⬅️ Página anterior"},
                             {"id": "next_page", "title": "➡️ Página siguiente"},
-                            {"id": "ordenar_menor", "title": "🔼 Ordenar menor a mayor"},
-                            {"id": "ordenar_mayor", "title": "🔽 Ordenar mayor a menor"},
+                            {"id": "ordenar", "title": "↕️ Ordenar precio"},
                             {"id": "filtrar_categoria", "title": "📂 Filtrar por categoría"},
-                        ]
+
+                            
+                        ]                        
                     }
                 ]
             }
         }
+
+        if self.pagina_Actual>=3:
+            botones["action"]["sections"][1]["rows"].append(
+                {"id": "go_first_page", "title": "🔁Volver al inicio"},
+            )
 
         return botones
 
@@ -83,6 +88,8 @@ class Chat:
             self.orden_por_precio = "asc"
         elif accion_id == "ordenar_mayor":
             self.orden_por_precio = "desc"
+        elif accion_id=="go_first_page":
+            self.pagina_Actual=1
         elif accion_id.startswith("filtro_"):  # ejemplo: filtro_postres
             self.categoria_Actual = accion_id.replace("filtro_", "")
             self.pagina_Actual = 1
