@@ -51,8 +51,8 @@ class Chat:
                         "rows": [
                             {
                                 "id": f"producto_{p['id']}",
-                                "title": p["nombre"],
-                                "description": f"${p['precio']}"
+                                "title": f"${p["nombre"],p['precio']}",
+                                "description": f"${p['descripcion']}"
                             }
                             for p in productos
                         ]
