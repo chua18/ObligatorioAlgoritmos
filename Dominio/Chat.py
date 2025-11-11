@@ -52,7 +52,7 @@ class Chat:
                             {
                                 "id": f"producto_{p['id']}",
                                 "title": f"{p['nombre']} - ${p['precio']}",
-                                "description": f"${p['descripcion']}"
+                                "description": f"{p['descripcion']}"
                             }
                             for p in productos
                         ]
