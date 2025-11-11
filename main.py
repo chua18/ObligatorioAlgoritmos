@@ -100,7 +100,8 @@ async def received_message(request: Request):
 
             # --- NUEVA LÓGICA CORREGIDA ---
             # WhatsApp List devuelve el ID del row (no el texto)
-            if content in ["next_page", "prev_page", "ordenar_menor", "ordenar_mayor", "filtrar_categoria"]:
+            if content in ["next_page", "prev_page", "ordenar", "filtrar_categoria", "go_first_page"]:
+
                 nuevo_mensaje = chat.manejar_accion(content)
                 payload = {
                     "messaging_product": "whatsapp",

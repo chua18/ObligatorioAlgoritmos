@@ -82,17 +82,23 @@ class Chat:
         # Acciones del usuario
         if accion_id == "next_page":
             self.pagina_Actual += 1
+
         elif accion_id == "prev_page" and self.pagina_Actual > 1:
             self.pagina_Actual -= 1
-        elif accion_id == "ordenar_menor":
-            self.orden_por_precio = "asc"
-        elif accion_id == "ordenar_mayor":
-            self.orden_por_precio = "desc"
+
+        elif accion_id == "ordenar":
+           if self.orden_por_precio == "asc":
+              self.orden_por_precio = "desc"
+           else :
+               self.orden_por_precio="asc"
+
         elif accion_id=="go_first_page":
             self.pagina_Actual=1
+
         elif accion_id.startswith("filtro_"):  # ejemplo: filtro_postres
             self.categoria_Actual = accion_id.replace("filtro_", "")
             self.pagina_Actual = 1
+            
         elif accion_id.startswith("producto_"):
             producto_id = int(accion_id.replace("producto_", ""))
             return {"mensaje": f"🛒 Agregaste el producto con ID {producto_id} al carrito."}
