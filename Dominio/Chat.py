@@ -3,12 +3,12 @@ from Menu import menuCompleto
 
 PAGE_SIZE = 5  # cantidad de productos por página
 
-def get_paginated_menu(page: int = 1, category: str = None) -> List[Dict[str, Any]]:
+def get_paginated_menu(page: int = 1, categoria: str = None) -> List[Dict[str, Any]]:
     resultados = menuCompleto
 
     # Filtrar por categoría si se pasa
-    if category:
-        resultados = [item for item in resultados if item["categoria"].lower() == category.lower()]
+    if categoria:
+        resultados = [item for item in resultados if item["categoria"].lower() == categoria.lower()]
 
     # Paginación
     start = (page - 1) * PAGE_SIZE
@@ -95,9 +95,22 @@ class Chat:
         elif accion_id=="go_first_page":
             self.pagina_Actual=1
 
-        elif accion_id.startswith("filtro_"):  # ejemplo: filtro_postres
+        elif accion_id.startswith("filtro_"):
             self.categoria_Actual = accion_id.replace("filtro_", "")
             self.pagina_Actual = 1
+
+            # Filtrar el menú
+            productos_filtrados = get_paginated_menu(
+                page=self.pagina_Actual,
+                categoria=self.categoria_Actual
+            )
+
+            # Guardar los productos filtrados si tu clase los usa internamente
+            self.menu_actual = productos_filtrados
+
+            #delegar la generación del mensaje al método que ya lo hace
+            return self.generar_mensaje_menu()
+
             
         elif accion_id.startswith("producto_"):
             producto_id = int(accion_id.replace("producto_", ""))
