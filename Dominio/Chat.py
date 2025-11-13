@@ -15,7 +15,7 @@ def get_paginated_menu(page: int = 1, categoria: str = None) -> List[Dict[str, A
     end = start + PAGE_SIZE
     paginated = resultados[start:end]
 
-    return paginated
+    return paginated  #ddd
 
 
 class Chat:
