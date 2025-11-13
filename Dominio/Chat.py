@@ -59,7 +59,6 @@ class Chat:
                     {
                         "title": "Acciones",
                         "rows": [
-                            {"id": "prev_page", "title": "⬅️ Página anterior"},
                             {"id": "next_page", "title": "➡️ Página siguiente"},
                             {"id": "ordenar", "title": "↕️ Ordenar precio"},
                             {"id": "filtrar_categoria", "title": "📂 Filtrar por categoría"},
@@ -70,13 +69,16 @@ class Chat:
                 ]
             }
         }
+        rows = botones["action"]["sections"][0]["rows"]
 
-        if self.pagina_Actual>=3:
-            botones["action"]["sections"][1]["rows"].append(
-                {"id": "go_first_page", "title": "🔁Volver al inicio"},
-            )
+        # Slicing para "Página anterior" (si pagina_Actual >= 1)
+        if self.pagina_Actual >= 1:
+            insert_index = 1 if self.pagina_Actual >= 3 else 0
+            rows[insert_index:insert_index] = [{"id": "prev_page", "title": "⬅️ Página anterior"}]
 
-        return botones
+        # Slicing para "Volver al inicio" (si pagina_Actual >= 3)
+        if self.pagina_Actual >= 3:
+            rows[:0] = [{"id": "go_first_page", "title": "🔁Volver al inicio"}]
 
     def manejar_accion(self, accion_id: str, category: str = None):
         # Acciones del usuario
