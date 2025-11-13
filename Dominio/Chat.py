@@ -95,23 +95,28 @@ class Chat:
         elif accion_id=="go_first_page":
             self.pagina_Actual=1
 
-        elif accion_id.startswith("filtro_"):
-            self.categoria_Actual = accion_id.replace("filtro_", "")
-            self.pagina_Actual = 1
+        elif accion_id == "filtrar_categoria":
+            # Crear lista de categorías únicas
+            categorias = sorted(set(item["categoria"] for item in menuCompleto))
 
-            # Filtrar el menú
-            productos_filtrados = get_paginated_menu(
-                page=self.pagina_Actual,
-                categoria=self.categoria_Actual
-            )
+            # Crear botones por categoría
+            botones_categorias = [
+                {
+                    "type": "reply",
+                    "reply": {"id": f"filtro_{cat.lower()}", "title": f"📁 {cat}"}
+                }
+                for cat in categorias
+            ]
 
-            # Guardar los productos filtrados si tu clase los usa internamente
-            self.menu_actual = productos_filtrados
+            # Crear el payload con los botones de categorías
+            payload = {
+                "type": "button",
+                "body": {"text": "Seleccioná una categoría para filtrar el menú 👇"},
+                "action": {"buttons": botones_categorias}
+            }
 
-            #delegar la generación del mensaje al método que ya lo hace
-            return self.generar_mensaje_menu()
+            return payload
 
-            
         elif accion_id.startswith("producto_"):
             producto_id = int(accion_id.replace("producto_", ""))
             return {"mensaje": f"🛒 Agregaste el producto con ID {producto_id} al carrito."}
