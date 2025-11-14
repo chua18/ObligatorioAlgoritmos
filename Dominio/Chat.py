@@ -123,9 +123,52 @@ class Chat:
 
             return payload
 
+        # --------------------------------------------------
+        # ✔️ NUEVO: Botón si el cliente quiere seguir agregando
+        # --------------------------------------------------
+        elif accion_id == "seguir_agregando":
+            return self.generar_mensaje_menu()
+
+        # --------------------------------------------------
+        # ✔️ NUEVO: Botón para finalizar el pedido
+        # --------------------------------------------------
+        elif accion_id == "finalizar_pedido":
+            return {
+                "type": "text",
+                "body": {"text": "🎉 ¡Pedido finalizado! Gracias por tu compra 🙌"}
+            }
+
+        # --------------------------------------------------
+        # ✔️ Modificado: Selección de producto -> muestra botones
+        # --------------------------------------------------
         elif accion_id.startswith("producto_"):
             producto_id = int(accion_id.replace("producto_", ""))
-            return {"mensaje": f"🛒 Agregaste el producto con ID {producto_id} al carrito."}
+
+            # Obtener el producto real
+            producto = next((p for p in menuCompleto if p["id"] == producto_id), None)
+
+            if not producto:
+                return {"type": "text", "body": {"text": "❌ Producto no encontrado"}}
+
+            # mensaje con botones
+            return {
+                "type": "button",
+                "body": {
+                    "text": f"🛒 *{producto['nombre']}* agregado al carrito.\n¿Qué querés hacer ahora?"
+                },
+                "action": {
+                    "buttons": [
+                        {
+                            "type": "reply",
+                            "reply": {"id": "seguir_agregando", "title": "➕ Agregar otro producto"}
+                        },
+                        {
+                            "type": "reply",
+                            "reply": {"id": "finalizar_pedido", "title": "✔️ Finalizar pedido"}
+                        }
+                    ]
+                }
+            }
 
         # Retorna el mensaje actualizado del menú
         return self.generar_mensaje_menu()
