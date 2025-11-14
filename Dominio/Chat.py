@@ -71,14 +71,27 @@ class Chat:
         }
         rows = botones["action"]["sections"][0]["rows"]
 
-        # Slicing para "Página anterior" (si pagina_Actual >= 1)
-        if self.pagina_Actual >= 1:
-            insert_index = 1 if self.pagina_Actual >= 3 else 0
-            rows[insert_index:insert_index] = [{"id": "prev_page", "title": "⬅️ Página anterior"}]
+        # --- Botones de paginación usando SOLO slicing ---
 
-        # Slicing para "Volver al inicio" (si pagina_Actual >= 3)
+        # 1) Eliminamos botones previos (evita duplicados)
+        rows[:] = [r for r in rows if r["id"] not in ["prev_page", "next_page", "go_first_page"]]
+
+        # 2) Insertamos en el orden correcto con slicing
+        insert_index = 0  # siempre insertamos al principio
+
+        # Volver al inicio → aparece desde página 3
         if self.pagina_Actual >= 3:
-            rows[:0] = [{"id": "go_first_page", "title": "🔁Volver al inicio"}]
+            rows[insert_index:insert_index] = [{"id": "go_first_page", "title": "🔁 Volver al inicio"}]
+            insert_index += 1
+
+        # Página anterior → aparece desde página 2
+        if self.pagina_Actual >= 2:
+            rows[insert_index:insert_index] = [{"id": "prev_page", "title": "⬅️ Página anterior"}]
+            insert_index += 1
+
+        # Página siguiente → siempre aparece
+        rows[insert_index:insert_index] = [{"id": "next_page", "title": "➡️ Página siguiente"}]
+
 
     def manejar_accion(self, accion_id: str, category: str = None):
         # Acciones del usuario
