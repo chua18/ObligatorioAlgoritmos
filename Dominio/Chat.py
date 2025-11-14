@@ -58,38 +58,30 @@ class Chat:
                     },
                     {
                         "title": "Acciones",
-                        "rows": [
-                            {"id": "next_page", "title": "➡️ Página siguiente"},
-                            {"id": "ordenar", "title": "↕️ Ordenar precio"},
-                            {"id": "filtrar_categoria", "title": "📂 Filtrar por categoría"},
-
-                            
-                        ]                        
+                        "rows": []                        
                     }
                 ]
             }
         }
-        rows = botones["action"]["sections"][1]["rows"]
-        # --- Botones de paginación usando SOLO slicing ---
+        rows = []
 
-        # 1) Eliminamos botones previos (evita duplicados)
-        rows[:] = [r for r in rows if r["id"] not in ["prev_page", "next_page", "go_first_page"]]
-
-        # 2) Insertamos en el orden correcto con slicing
-        insert_index = 0  # siempre insertamos al principio
-
-        # Volver al inicio → aparece desde página 3
+        # Volver al inicio (solo desde página 3)
         if self.pagina_Actual >= 3:
-            rows[insert_index:insert_index] = [{"id": "go_first_page", "title": "🔁 Volver al inicio"}]
-            insert_index += 1
+            rows.append({"id": "go_first_page", "title": "🔁 Volver al inicio"})
 
-        # Página anterior → aparece desde página 2
+        # Página anterior (solo desde página 2)
         if self.pagina_Actual >= 2:
-            rows[insert_index:insert_index] = [{"id": "prev_page", "title": "⬅️ Página anterior"}]
-            insert_index += 1
+            rows.append({"id": "prev_page", "title": "⬅️ Página anterior"})
 
-        # Página siguiente → siempre aparece
-        rows[insert_index:insert_index] = [{"id": "next_page", "title": "➡️ Página siguiente"}]
+        # Página siguiente (siempre)
+        rows.append({"id": "next_page", "title": "➡️ Página siguiente"})
+
+        # Botones fijos
+        rows.append({"id": "ordenar", "title": "↕️ Ordenar precio"})
+        rows.append({"id": "filtrar_categoria", "title": "📂 Filtrar por categoría"})
+
+        # Aplicar los nuevos botones a la sección Acciones
+        botones["action"]["sections"][1]["rows"] = rows
 
 
     def manejar_accion(self, accion_id: str, category: str = None):
