@@ -69,8 +69,7 @@ class Chat:
                 ]
             }
         }
-        rows = botones["action"]["sections"][0]["rows"]
-
+        rows = botones["action"]["sections"][1]["rows"]
         # --- Botones de paginación usando SOLO slicing ---
 
         # 1) Eliminamos botones previos (evita duplicados)
