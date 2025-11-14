@@ -66,7 +66,7 @@ class Chat:
         rows = []
 
         # Volver al inicio (solo desde página 3)
-        if self.pagina_Actual >= 3:
+        if self.pagina_Actual >= 2:
             rows.append({"id": "go_first_page", "title": "🔁 Volver al inicio"})
 
         # Página anterior (solo desde página 2)
