@@ -55,7 +55,7 @@ async def send_menu(to: str, nombre: str = "Cliente") -> None:
 
 
 # --------------------------------------------------------
-# ENDPOINTS
+# el main cambio
 # --------------------------------------------------------
 @app.get("/welcome")
 def index():
