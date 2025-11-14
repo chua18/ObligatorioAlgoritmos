@@ -82,7 +82,7 @@ class Chat:
 
         # Aplicar los nuevos botones a la sección Acciones
         botones["action"]["sections"][1]["rows"] = rows
-
+        return botones
 
     def manejar_accion(self, accion_id: str, category: str = None):
         # Acciones del usuario
