@@ -4,7 +4,7 @@ import os
 import logging
 import httpx
 from typing import Any, Dict, List
-from Dominio.Chat import Chat #dddd
+from Dominio.Chat import Chat #ddddee
 
 chat = Chat()
 
