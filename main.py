@@ -67,8 +67,6 @@ def build_whatsapp_payload(to: str, msg: Dict[str, Any]) -> Dict[str, Any]:
 
     # Mensaje de texto simple
     if msg_type == "text":
-        # En Chat lo definimos como:
-        # {"type": "text", "body": {"text": "mensaje..."}}
         texto = msg["body"]["text"]
         return {
             "messaging_product": "whatsapp",
@@ -149,7 +147,11 @@ async def received_message(request: Request):
                 or content.startswith("producto_")  # selección de producto de la lista
             ):
                 # Delega toda la lógica en Chat.manejar_accion
-                nuevo_mensaje = chat.manejar_accion(content)
+                nuevo_mensaje = chat.manejar_accion(   # ⬅️⬅️ AQUÍ EL CAMBIO
+                    accion_id=content,
+                    cliente=number,
+                    ubicacion=(0.0, 0.0)
+                )
 
                 # Armamos el payload según el tipo (text o interactive)
                 payload = build_whatsapp_payload(number, nuevo_mensaje)
