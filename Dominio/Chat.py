@@ -80,17 +80,23 @@ class Chat:
         }
 
         rows = []
-
-        if self.pagina_Actual >= 2:
+        # Volver al inicio → página 3 en adelante
+        if self.pagina_Actual >= 3:
             rows.append({"id": "go_first_page", "title": "🔁 Volver al inicio"})
+
+        # Página anterior → página 2 en adelante
+        if self.pagina_Actual >= 2:
             rows.append({"id": "prev_page", "title": "⬅️ Página anterior"})
 
+        # Página siguiente → siempre
         rows.append({"id": "next_page", "title": "➡️ Página siguiente"})
         rows.append({"id": "ordenar", "title": "↕️ Ordenar precio"})
         rows.append({"id": "filtrar_categoria", "title": "📂 Filtrar por categoría"})
 
+        # Aplicar botones al menú
         botones["action"]["sections"][1]["rows"] = rows
         return botones
+
 
     # --------------------------
     # CARRITO Y POST-SELECCIÓN
