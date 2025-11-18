@@ -98,6 +98,7 @@ def index():
     return {"mensaje": "welcome developer"}
 
 
+# NOTA: En un entorno de producción, ACCESS_TOKEN debe venir de os.getenv
 ACCESS_TOKEN = "EAA9eDvNAZBDQBP37gpXOtr2GEcSy83sotyZA5s1qRZBFqWZBmFOuTglbfCASLaD1vV1rdOgyJBHKAxRdk8JRlTxcs7ZBCGeQ0vxhne9nlV08EKkpbz34q3wgeV8Pb3vmcajZCdjB2U5lOy23JRwfrhGagM2MtQUeaalUGtQ3FFIP7inKeENVP8wC7vPc34QQZDZD"
 
 
@@ -108,7 +109,8 @@ async def verify_token(request: Request):
         verify_token = query_params.get("hub.verify_token")
         challenge = query_params.get("hub.challenge")
 
-        if verify_token is not None and challenge is not None and verify_token == ACCESS_TOKEN:
+        # Usar la variable de entorno para el token de verificación
+        if verify_token is not None and challenge is not None and verify_token == os.getenv("VERIFY_TOKEN", "default_token_seguro"): 
             return int(challenge)
         else:
             raise HTTPException(status_code=400, detail="Token de verificación inválido o parámetros faltantes")
@@ -134,41 +136,43 @@ async def received_message(request: Request):
 
             print(f"Mensaje recibido de {number}: {content}")
 
-            # --- NUEVA LÓGICA CORREGIDA ---
-            # WhatsApp List/Button devuelve el ID del row (no el texto)
-            acciones_menu = [
-                "next_page",
-                "prev_page",
-                "ordenar",
-                "filtrar_categoria",
-                "go_first_page",
-                "seguir_agregando",
-                "finalizar_pedido",
-            ]
-
+            # --- LÓGICA CORREGIDA ---
+            # Todas las acciones del menú (botones/listas) tienen un ID (content)
+            # que comienza con alguna de estas IDs
+            
             if (
-                content in acciones_menu
-                or content.startswith("producto_")  # selección de producto de la lista
+                content == "next_page" or
+                content == "prev_page" or
+                content == "ordenar" or
+                content == "filtrar_categoria" or
+                content == "go_first_page" or
+                content == "seguir_agregando" or
+                content == "finalizar_pedido" or
+                content.startswith("producto_") or
+                content.startswith("filtro_") # ✅ Maneja la respuesta de la selección de categoría
             ):
                 # Delega toda la lógica en Chat.manejar_accion
-                nuevo_mensaje = chat.manejar_accion(   # ⬅️⬅️ AQUÍ EL CAMBIO
+                # Ahora maneja_accion acepta estos argumentos (corregido en Chat.py)
+                nuevo_mensaje = chat.manejar_accion( 
                     accion_id=content,
                     cliente=number,
-                    ubicacion=(0.0, 0.0)
+                    ubicacion=(0.0, 0.0) # Usar ubicación por defecto por ahora
                 )
 
-                # Armamos el payload según el tipo (text o interactive)
+                # Armamos el payload según el tipo (text, button o interactive list)
                 payload = build_whatsapp_payload(number, nuevo_mensaje)
                 await send_to_whatsapp(payload)
 
             else:
-                # Primer mensaje o texto cualquiera → mostrar menú inicial
+                # Primer mensaje, texto cualquiera o ID no reconocida → mostrar menú inicial
                 await send_menu(number, name)
 
         return "EVENT_RECEIVED"
 
     except Exception as e:
         print("Error en /whatsapp:", e)
+        # Es vital que el endpoint devuelva 200 OK a WhatsApp aunque falle internamente
+        # para evitar reenvíos.
         return "EVENT_RECEIVED"
 
 

@@ -8,9 +8,10 @@ PAGE_SIZE = 5  # cantidad de productos por página
 def get_paginated_menu(page: int = 1, categoria: str = None) -> List[Dict[str, Any]]:
     resultados = menuCompleto
 
+    # Filtrado por categoría
     if categoria:
         resultados = [item for item in resultados if item["categoria"].lower() == categoria.lower()]
-
+    
     start = (page - 1) * PAGE_SIZE
     end = start + PAGE_SIZE
     return resultados[start:end]
@@ -38,13 +39,21 @@ class Chat:
             productos.sort(key=lambda x: x["precio"], reverse=True)
 
         texto = "🍔 *Menú disponible:*\nSeleccioná un producto o una acción.\n"
-
+        if self.categoria_actual:
+            texto += f"_(Filtrado por: {self.categoria_actual.capitalize()})_"
+        
         rows_acciones = []
+        # Solo mostrar opciones de navegación si hay más productos que el tamaño de página
+        if len(get_paginated_menu(self.pagina_actual + 1, self.categoria_actual)) > 0:
+            rows_acciones.append({"id": "next_page", "title": "➡️ Página siguiente"})
+        
+        if self.pagina_actual > 1:
+            rows_acciones.insert(0, {"id": "prev_page", "title": "⬅️ Página anterior"})
+        
         if self.pagina_actual >= 3:
-            rows_acciones.append({"id": "go_first_page", "title": "🔁 Volver al inicio"})
-        if self.pagina_actual >= 2:
-            rows_acciones.append({"id": "prev_page", "title": "⬅️ Página anterior"})
-        rows_acciones.append({"id": "next_page", "title": "➡️ Página siguiente"})
+            rows_acciones.insert(0, {"id": "go_first_page", "title": "🔁 Volver al inicio"})
+
+        # Acciones fijas
         rows_acciones.append({"id": "ordenar", "title": "↕️ Ordenar precio"})
         rows_acciones.append({"id": "filtrar_categoria", "title": "📂 Filtrar por categoría"})
 
@@ -96,30 +105,30 @@ class Chat:
 
     def finalizar_pedido_en_grafo(self, cliente: str, ubicacion=(0.0, 0.0)):
         if not self.carrito:
-            return "⚠️ No tenés productos en el carrito."
-
-        pedido = Pedido(cliente=cliente, ubicacion=ubicacion, items=self.carrito.copy())
-        self.pedidos_tanda.append(pedido)
-
-        if self.grafo_pedidos:
-            self.grafo_pedidos.generar_rutas(self.nombre_restaurante, self.pedidos_tanda)
-            distancias = self.grafo_pedidos.dijkstra(self.nombre_restaurante)
-            distancia_cliente = distancias.get(cliente, None)
+            mensaje = "⚠️ No tenés productos en el carrito."
         else:
-            distancia_cliente =  None 
+            # Lógica comentada de Pedido/Grafo:
+            # pedido = Pedido(cliente=cliente, ubicacion=ubicacion, items=self.carrito.copy())
+            # self.pedidos_tanda.append(pedido)
+            # ...
+            distancia_cliente = None # Por ahora, siempre None
+            self.carrito.clear()
 
-        self.carrito.clear()
+            mensaje = "🧾 *Pedido finalizado*\n"
+            if distancia_cliente is not None:
+                mensaje += f"📍 Distancia estimada: {distancia_cliente} km\n"
+            mensaje += "🎉 Gracias por tu compra 🙌"
 
-        mensaje = "🧾 *Pedido finalizado*\n"
-        if distancia_cliente is not None:
-            mensaje += f"📍 Distancia estimada: {distancia_cliente} km\n"
-        mensaje += "🎉 Gracias por tu compra 🙌"
-        return mensaje
+        # Debe retornar un diccionario para ser compatible con build_whatsapp_payload
+        return {
+            "type": "text",
+            "body": {"text": mensaje}
+        }
 
     # --------------------------
     # MANEJO DE ACCIONES
     # --------------------------
-    def manejar_accion(self, accion_id: str):
+    def manejar_accion(self, accion_id: str, cliente: str = None, ubicacion: tuple = (0.0, 0.0)):
         # Paginación
         if accion_id == "next_page":
             self.pagina_actual += 1
@@ -127,7 +136,7 @@ class Chat:
             self.pagina_actual -= 1
         elif accion_id == "go_first_page":
             self.pagina_actual = 1
-            self.categoria_actual = None
+            self.categoria_actual = None # Quita el filtro al volver al inicio
 
         # Ordenamiento
         elif accion_id == "ordenar":
@@ -135,20 +144,26 @@ class Chat:
                 self.orden_por_precio = "desc"
             else:
                 self.orden_por_precio = "asc"
+            self.pagina_actual = 1 # Reiniciar página al cambiar el orden
 
-         #Mostrar opciones de filtrado 
+        # Aplicar filtro seleccionado (RESPUESTA del botón de categoría)
         elif accion_id.startswith("filtro_"):
             categoria_seleccionada = accion_id.replace("filtro_", "")
             self.categoria_actual = categoria_seleccionada
-            self.pagina_actual = 1 ###
-
-        # Filtrado por categoría
+            self.pagina_actual = 1
+            
+        # Muestra opciones de filtrado (al presionar 'Filtrar por categoría')
         elif accion_id == "filtrar_categoria":
             categorias = sorted(set(item["categoria"] for item in menuCompleto))
             botones_categorias = [
-                {"type": "reply", "reply": {"id": f"filtro_{cat.lower()}", "title": f"📁 {cat}"}}
+                {"type": "reply", "reply": {"id": f"filtro_{cat.lower()}", "title": f"📁 {cat.capitalize()}"}}
                 for cat in categorias
             ]
+            
+            # Opción para quitar el filtro
+            if self.categoria_actual:
+                 botones_categorias.insert(0, {"type": "reply", "reply": {"id": "go_first_page", "title": "❌ Mostrar todo el menú"}})
+
             return {
                 "type": "button",
                 "body": {"text": "Seleccioná una categoría para filtrar el menú 👇"},
@@ -161,10 +176,8 @@ class Chat:
 
         # Finalizar pedido
         elif accion_id == "finalizar_pedido":
-            return {
-                "type": "text",
-                "body": {"text": "🎉 ¡Pedido finalizado! Gracias por tu compra 🙌"}
-            }
+            # Usar la función que maneja el retorno estructurado
+            return self.finalizar_pedido_en_grafo(cliente, ubicacion)
 
         # Selección de producto
         elif accion_id.startswith("producto_"):
