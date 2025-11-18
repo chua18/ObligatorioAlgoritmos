@@ -172,22 +172,20 @@ class Chat:
                 })
 
             return {
-                "type": "interactive",
-                "interactive": {
-                    "type": "list",
-                    "header": {"type": "text", "text": "📂 Filtrar por categoría"},
-                    "body": {"text": "Elegí una categoría para filtrar el menú 👇"},
-                    "action": {
-                        "button": "Ver categorías",
-                        "sections": [
-                            {
-                                "title": "Categorías disponibles",
-                                "rows": filas
-                            }
-                        ]
-                    }
+                "type": "list",
+                "header": {"type": "text", "text": "📂 Filtrar por categoría"},
+                "body": {"text": "Elegí una categoría para filtrar el menú 👇"},
+                "action": {
+                    "button": "Ver categorías",
+                    "sections": [
+                        {
+                            "title": "Categorías disponibles",
+                            "rows": filas
+                        }
+                    ]
                 }
             }
+
 
         # Seguir agregando productos
         elif accion_id == "seguir_agregando":
