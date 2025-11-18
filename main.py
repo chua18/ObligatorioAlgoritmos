@@ -4,7 +4,7 @@ import os
 import logging
 import httpx
 from typing import Any, Dict, List
-from Dominio.Chat import Chat  # ddddee
+from Dominio.Chat import Chat #ddddee
 
 chat = Chat()
 
@@ -14,7 +14,6 @@ app = FastAPI()
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", "")
 PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID", "")
 GRAPH_SEND_URL = "https://graph.facebook.com/v22.0/828302067035331/messages"
-
 
 # --------------------------------------------------------
 # FUNCIONES AUXILIARES PARA ENVIAR MENSAJES A WHATSAPP
@@ -53,39 +52,6 @@ async def send_menu(to: str, nombre: str = "Cliente") -> None:
     }
     print(f"payload del menú paginado:\n{payload}")
     await send_to_whatsapp(payload)
-
-
-# --------------------------------------------------------
-# 🔧 NUEVO: helper para armar el payload según el tipo
-# --------------------------------------------------------
-def build_whatsapp_payload(to: str, msg: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Recibe el dict que devuelve Chat (list/button/text)
-    y lo transforma en el payload correcto para la API de WhatsApp.
-    """
-    msg_type = msg.get("type")
-
-    # Mensaje de texto simple
-    if msg_type == "text":
-        # En Chat lo definimos como:
-        # {"type": "text", "body": {"text": "mensaje..."}}
-        texto = msg["body"]["text"]
-        return {
-            "messaging_product": "whatsapp",
-            "to": to,
-            "type": "text",
-            "text": {
-                "body": texto
-            }
-        }
-
-    # Cualquier otro ("list", "button", etc.) va como interactive
-    return {
-        "messaging_product": "whatsapp",
-        "to": to,
-        "type": "interactive",
-        "interactive": msg
-    }
 
 
 # --------------------------------------------------------
@@ -133,26 +99,16 @@ async def received_message(request: Request):
             print(f"Mensaje recibido de {number}: {content}")
 
             # --- NUEVA LÓGICA CORREGIDA ---
-            # WhatsApp List/Button devuelve el ID del row (no el texto)
-            acciones_menu = [
-                "next_page",
-                "prev_page",
-                "ordenar",
-                "filtrar_categoria",
-                "go_first_page",
-                "seguir_agregando",
-                "finalizar_pedido",
-            ]
+            # WhatsApp List devuelve el ID del row (no el texto)
+            if content in ["next_page", "prev_page", "ordenar", "filtrar_categoria", "go_first_page"]:
 
-            if (
-                content in acciones_menu
-                or content.startswith("producto_")  # selección de producto de la lista
-            ):
-                # Delega toda la lógica en Chat.manejar_accion
                 nuevo_mensaje = chat.manejar_accion(content)
-
-                # Armamos el payload según el tipo (text o interactive)
-                payload = build_whatsapp_payload(number, nuevo_mensaje)
+                payload = {
+                    "messaging_product": "whatsapp",
+                    "to": number,
+                    "type": "interactive",
+                    "interactive": nuevo_mensaje
+                }
                 await send_to_whatsapp(payload)
 
             else:
@@ -172,3 +128,4 @@ async def received_message(request: Request):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
