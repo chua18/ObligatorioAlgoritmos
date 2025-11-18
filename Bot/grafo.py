@@ -1,41 +1,45 @@
-# Dominio/GrafoPedidos.py
-import math
-from typing import Dict, Tuple, List
 
+import math
 
 class GrafoPedidos:
     def __init__(self):
-        self.grafo: Dict[str, Dict[str, float]] = {}
+        self.grafo = {}
 
-    def agregar_nodo(self, nombre: str):
+    def agregar_nodo(self, nombre):
         if nombre not in self.grafo:
             self.grafo[nombre] = {}
 
-    def agregar_arista(self, origen: str, destino: str, distancia: float):
+    def agregar_arista(self, origen, destino, distancia):
         if origen in self.grafo and destino in self.grafo:
             self.grafo[origen][destino] = distancia
             self.grafo[destino][origen] = distancia  # No dirigido
 
-    def calcular_distancia(self, ubicacion1: Tuple[float, float], ubicacion2: Tuple[float, float]):
-        """Calcula la distancia euclidiana entre dos puntos (lat, lon)."""
+    def calcular_distancia(self, ubicacion1, ubicacion2):
+        """Calcula la distancia euclidiana entre dos puntos (lat, lon)"""
         lat1, lon1 = ubicacion1
         lat2, lon2 = ubicacion2
         return round(math.sqrt((lat2 - lat1) ** 2 + (lon2 - lon1) ** 2) * 111, 2)  # km aprox.
 
-    def generar_rutas(self, restaurante: str, pedidos: List):
-        """Genera nodos y distancias desde el restaurante a cada cliente."""
+    def generar_rutas(self, restaurante, pedidos):
+        """
+        Crea un grafo conectando el restaurante con todos los clientes de la tanda.
+        Cada cliente se conecta también con el siguiente más cercano.
+        """
         self.agregar_nodo(restaurante)
-        ubicacion_restaurante = (0.0, 0.0)
-
         for pedido in pedidos:
             self.agregar_nodo(pedido.cliente)
-            distancia = self.calcular_distancia(pedido.ubicacion, ubicacion_restaurante)
+            distancia = self.calcular_distancia(pedido.ubicacion, (0, 0))  # (0,0) = restaurante
             self.agregar_arista(restaurante, pedido.cliente, distancia)
 
-    def obtener_vecinos(self, nodo: str):
+    def mostrar_grafo(self):
+        for nodo, conexiones in self.grafo.items():
+            print(f"{nodo} -> {conexiones}")
+
+    def obtener_vecinos(self, nodo):
         return self.grafo.get(nodo, {})
 
-    def dijkstra(self, inicio: str):
+    def dijkstra(self, inicio):
+        """Calcula la ruta más corta desde el nodo de inicio (restaurante)"""
         distancias = {nodo: float('inf') for nodo in self.grafo}
         distancias[inicio] = 0
         visitados = set()
