@@ -47,7 +47,7 @@ class Chat:
         if len(get_paginated_menu(self.pagina_actual + 1, self.categoria_actual)) > 0:
             rows_acciones.append({"id": "next_page", "title": "➡️ Página siguiente"})
         
-        if self.pagina_actual > 1:
+        if self.pagina_actual > 2:
             rows_acciones.insert(0, {"id": "prev_page", "title": "⬅️ Página anterior"})
         
         if self.pagina_actual >= 3:
