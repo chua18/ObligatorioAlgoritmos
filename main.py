@@ -101,22 +101,20 @@ def index():
 # NOTA: En un entorno de producción, ACCESS_TOKEN debe venir de os.getenv
 ACCESS_TOKEN = "EAA9eDvNAZBDQBP37gpXOtr2GEcSy83sotyZA5s1qRZBFqWZBmFOuTglbfCASLaD1vV1rdOgyJBHKAxRdk8JRlTxcs7ZBCGeQ0vxhne9nlV08EKkpbz34q3wgeV8Pb3vmcajZCdjB2U5lOy23JRwfrhGagM2MtQUeaalUGtQ3FFIP7inKeENVP8wC7vPc34QQZDZD"
 
-
 @app.get("/whatsapp")
-async def verify_token(request: Request):
-    try:
-        query_params = request.query_params
-        verify_token = query_params.get("hub.verify_token")
-        challenge = query_params.get("hub.challenge")
+async def verify_webhook(request: Request):
+    params = request.query_params
 
-        # Usar la variable de entorno para el token de verificación
-        if verify_token is not None and challenge is not None and verify_token == os.getenv("VERIFY_TOKEN", "default_token_seguro"): 
-            return int(challenge)
-        else:
-            raise HTTPException(status_code=400, detail="Token de verificación inválido o parámetros faltantes")
+    mode = params.get("hub.mode")
+    token = params.get("hub.verify_token")
+    challenge = params.get("hub.challenge")
 
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error en la verificación: {e}")
+    VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
+
+    if mode == "subscribe" and token == VERIFY_TOKEN:
+        return int(challenge)
+
+    raise HTTPException(status_code=403, detail="Token inválido o parámetros faltantes")
 
 
 @app.post("/whatsapp")
