@@ -152,22 +152,41 @@ class Chat:
             self.categoria_actual = categoria_seleccionada
             self.pagina_actual = 1
             
-        # Muestra opciones de filtrado (al presionar 'Filtrar por categoría')
         elif accion_id == "filtrar_categoria":
             categorias = sorted(set(item["categoria"] for item in menuCompleto))
-            botones_categorias = [
-                {"type": "reply", "reply": {"id": f"filtro_{cat.lower()}", "title": f"📁 {cat.capitalize()}"}}
-                for cat in categorias
-            ]
-            
-            # Opción para quitar el filtro
+
+            filas = []
+
+            # Mostrar opción para quitar filtro si hay uno activo
             if self.categoria_actual:
-                 botones_categorias.insert(0, {"type": "reply", "reply": {"id": "go_first_page", "title": "❌ Mostrar todo el menú"}})
+                filas.append({
+                    "id": "go_first_page",
+                    "title": "❌ Mostrar todo el menú"
+                })
+
+            # Agregar categorías
+            for cat in categorias:
+                filas.append({
+                    "id": f"filtro_{cat.lower()}",
+                    "title": f"📁 {cat}"
+                })
 
             return {
-                "type": "button",
-                "body": {"text": "Seleccioná una categoría para filtrar el menú 👇"},
-                "action": {"buttons": botones_categorias}
+                "type": "interactive",
+                "interactive": {
+                    "type": "list",
+                    "header": {"type": "text", "text": "📂 Filtrar por categoría"},
+                    "body": {"text": "Elegí una categoría para filtrar el menú 👇"},
+                    "action": {
+                        "button": "Ver categorías",
+                        "sections": [
+                            {
+                                "title": "Categorías disponibles",
+                                "rows": filas
+                            }
+                        ]
+                    }
+                }
             }
 
         # Seguir agregando productos
