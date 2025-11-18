@@ -163,7 +163,7 @@ class Chat:
             if self.categoria_actual:
                 filas.append({
                     "id": "go_first_page",
-                    "title": "❌ Mostrar todo el menú"
+                    "title": "❌ Quitar filtro"
                 })
 
             # Agregar categorías
