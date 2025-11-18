@@ -140,7 +140,7 @@ class Chat:
         elif accion_id.startswith("filtro_"):
             categoria_seleccionada = accion_id.replace("filtro_", "")
             self.categoria_actual = categoria_seleccionada
-            self.pagina_actual = 1
+            self.pagina_actual = 1 ###
 
         # Filtrado por categoría
         elif accion_id == "filtrar_categoria":
