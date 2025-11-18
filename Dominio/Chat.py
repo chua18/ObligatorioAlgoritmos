@@ -195,25 +195,101 @@ class Chat:
             }
 
             return payload
+# ---------------------------------------------
+    # 🛒 NUEVO: lógica de carrito y post-selección
+    # ---------------------------------------------
+    def agregar_producto_al_carrito(self, producto: Dict[str, Any]) -> None:
+        """Agrega un producto al carrito (en memoria)."""
+        self.carrito.append(producto)
 
-        # --------------------------------------------------
-        # ✔️ NUEVO: Botón si el cliente quiere seguir agregando
-        # --------------------------------------------------
+    def generar_mensaje_post_seleccion_producto(self, producto: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Mensaje que se envía luego de seleccionar un producto:
+        pregunta si quiere agregar algo más o finalizar el pedido.
+        """
+        return {
+            "type": "button",
+            "body": {
+                "text": (
+                    f"🛒 *{producto['nombre']}* agregado al carrito.\n"
+                    "¿Querés agregar algo más al pedido o finalizarlo?"
+                )
+            },
+            "action": {
+                "buttons": [
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "seguir_agregando",
+                            "title": "➕ Agregar otro producto"
+                        }
+                    },
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "finalizar_pedido",
+                            "title": "✔️ Finalizar pedido"
+                        }
+                    }
+                ]
+            }
+        }
+
+    # ------------------------------
+    # 🎯 MANEJO DE ACCIONES
+    # ------------------------------
+    def manejar_accion(self, accion_id: str, category: str = None):
+        # Acciones del usuario
+        if accion_id == "next_page":
+            self.pagina_Actual += 1
+
+        elif accion_id == "prev_page" and self.pagina_Actual > 1:
+            self.pagina_Actual -= 1
+
+        elif accion_id == "ordenar":
+            if self.orden_por_precio == "asc":
+                self.orden_por_precio = "desc"
+            else:
+                self.orden_por_precio = "asc"
+
+        elif accion_id == "go_first_page":
+            self.pagina_Actual = 1
+
+        elif accion_id == "filtrar_categoria":
+            # Crear lista de categorías únicas
+            categorias = sorted(set(item["categoria"] for item in menuCompleto))
+
+            # Crear botones por categoría
+            botones_categorias = [
+                {
+                    "type": "reply",
+                    "reply": {"id": f"filtro_{cat.lower()}", "title": f"📁 {cat}"}
+                }
+                for cat in categorias
+            ]
+
+            # Crear el payload con los botones de categorías
+            payload = {
+                "type": "button",
+                "body": {"text": "Seleccioná una categoría para filtrar el menú 👇"},
+                "action": {"buttons": botones_categorias}
+            }
+
+            return payload
+
+        # ✔️ Botón si el cliente quiere seguir agregando
         elif accion_id == "seguir_agregando":
             return self.generar_mensaje_menu()
 
-        # --------------------------------------------------
-        # ✔️ NUEVO: Botón para finalizar el pedido
-        # --------------------------------------------------
+        # ✔️ Botón para finalizar el pedido
         elif accion_id == "finalizar_pedido":
+            # Acá podrías armar el resumen del carrito si querés
             return {
                 "type": "text",
                 "body": {"text": "🎉 ¡Pedido finalizado! Gracias por tu compra 🙌"}
             }
 
-        # --------------------------------------------------
-        # ✔️ Modificado: Selección de producto -> muestra botones
-        # --------------------------------------------------
+        # ✔️ Selección de producto -> agregar al carrito y preguntar qué hacer
         elif accion_id.startswith("producto_"):
             producto_id = int(accion_id.replace("producto_", ""))
 
@@ -223,25 +299,11 @@ class Chat:
             if not producto:
                 return {"type": "text", "body": {"text": "❌ Producto no encontrado"}}
 
-            # mensaje con botones
-            return {
-                "type": "button",
-                "body": {
-                    "text": f"🛒 *{producto['nombre']}* agregado al carrito.\n¿Qué querés hacer ahora?"
-                },
-                "action": {
-                    "buttons": [
-                        {
-                            "type": "reply",
-                            "reply": {"id": "seguir_agregando", "title": "➕ Agregar otro producto"}
-                        },
-                        {
-                            "type": "reply",
-                            "reply": {"id": "finalizar_pedido", "title": "✔️ Finalizar pedido"}
-                        }
-                    ]
-                }
-            }
+            # 1) Agregar al carrito
+            self.agregar_producto_al_carrito(producto)
 
-        # Retorna el mensaje actualizado del menú
+            # 2) Devolver mensaje que pregunta si quiere seguir agregando o finalizar
+            return self.generar_mensaje_post_seleccion_producto(producto)
+
+        # Retorna el mensaje actualizado del menú por defecto
         return self.generar_mensaje_menu()
