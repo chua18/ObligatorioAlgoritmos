@@ -110,7 +110,7 @@ async def verify_token(request: Request):
         challenge = query_params.get("hub.challenge")
 
         # Usar la variable de entorno para el token de verificación
-        if verify_token is not None and challenge is not None and verify_token == os.getenv("VERIFY_TOKEN", "default_token_seguro"): 
+        if verify_token is not None and challenge is not None and verify_token == ACCESS_TOKEN:
             return int(challenge)
         else:
             raise HTTPException(status_code=400, detail="Token de verificación inválido o parámetros faltantes")
