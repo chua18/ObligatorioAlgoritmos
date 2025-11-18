@@ -151,6 +151,8 @@ class Chat:
             categoria_seleccionada = accion_id.replace("filtro_", "")
             self.categoria_actual = categoria_seleccionada
             self.pagina_actual = 1
+
+            return self.generar_mensaje_menu()
             
         elif accion_id == "filtrar_categoria":
             categorias = sorted(set(item["categoria"] for item in menuCompleto))
