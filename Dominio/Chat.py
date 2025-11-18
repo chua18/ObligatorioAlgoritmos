@@ -136,7 +136,7 @@ class Chat:
             else:
                 self.orden_por_precio = "asc"
 
-         #Mostrar opciones de filtrado (Tu código original, ahora en su lugar)
+         #Mostrar opciones de filtrado 
         elif accion_id.startswith("filtro_"):
             categoria_seleccionada = accion_id.replace("filtro_", "")
             self.categoria_actual = categoria_seleccionada
