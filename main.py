@@ -4,7 +4,7 @@ import os
 import logging
 import httpx
 from typing import Any, Dict, List
-from Dominio.Chat import Chat  # ddddee
+from Dominio.Chat import Chat
 
 chat = Chat()
 
@@ -14,19 +14,21 @@ app = FastAPI()
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", "")
 PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID", "")
 VERSION = os.getenv("VERSION", "v22.0")
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "")
 
 GRAPH_SEND_URL = f"https://graph.facebook.com/{VERSION}/{PHONE_NUMBER_ID}/messages"
 
 logging.info(f"ACCESS_TOKEN cargado? {bool(ACCESS_TOKEN)}")
 logging.info(f"PHONE_NUMBER_ID: {PHONE_NUMBER_ID!r}")
 logging.info(f"GRAPH_SEND_URL: {GRAPH_SEND_URL}")
+
 # --------------------------------------------------------
 # FUNCIONES AUXILIARES PARA ENVIAR MENSAJES A WHATSAPP
 # --------------------------------------------------------
 async def send_to_whatsapp(payload: Dict[str, Any]) -> None:
     """Envía un mensaje a la API de WhatsApp usando httpx (async)."""
     if not ACCESS_TOKEN or not PHONE_NUMBER_ID:
-        logging.warning("Falta WHATSAPP_TOKEN o WHATSAPP_PHONE_ID. (No se envía a la API, modo MOCK)")
+        logging.warning("Falta ACCESS_TOKEN o PHONE_NUMBER_ID. (No se envía a la API, modo MOCK)")
         logging.info(f"MOCK SEND => {payload}")
         return
 
@@ -60,7 +62,7 @@ async def send_menu(to: str, nombre: str = "Cliente") -> None:
 
 
 # --------------------------------------------------------
-# 🔧 NUEVO: helper para armar el payload según el tipo
+# HELPER PARA ARMAR EL PAYLOAD SEGÚN EL TIPO
 # --------------------------------------------------------
 def build_whatsapp_payload(to: str, msg: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -91,25 +93,26 @@ def build_whatsapp_payload(to: str, msg: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # --------------------------------------------------------
-# el main cambio
+# ENDPOINTS
 # --------------------------------------------------------
+@app.get("/")
+def root():
+    return {"mensaje": "API de WhatsApp funcionando correctamente"}
+
+
 @app.get("/welcome")
 def index():
     return {"mensaje": "welcome developer"}
 
 
-# NOTA: En un entorno de producción, ACCESS_TOKEN debe venir de os.getenv
-ACCESS_TOKEN = "EAA9eDvNAZBDQBP37gpXOtr2GEcSy83sotyZA5s1qRZBFqWZBmFOuTglbfCASLaD1vV1rdOgyJBHKAxRdk8JRlTxcs7ZBCGeQ0vxhne9nlV08EKkpbz34q3wgeV8Pb3vmcajZCdjB2U5lOy23JRwfrhGagM2MtQUeaalUGtQ3FFIP7inKeENVP8wC7vPc34QQZDZD"
-
 @app.get("/whatsapp")
 async def verify_webhook(request: Request):
+    """Endpoint de verificación del webhook de WhatsApp"""
     params = request.query_params
 
     mode = params.get("hub.mode")
     token = params.get("hub.verify_token")
     challenge = params.get("hub.challenge")
-
-    VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
 
     if mode == "subscribe" and token == VERIFY_TOKEN:
         return int(challenge)
@@ -119,6 +122,7 @@ async def verify_webhook(request: Request):
 
 @app.post("/whatsapp")
 async def received_message(request: Request):
+    """Endpoint para recibir mensajes de WhatsApp"""
     try:
         body = await request.json()
         entry = body["entry"][0]
@@ -134,10 +138,7 @@ async def received_message(request: Request):
 
             print(f"Mensaje recibido de {number}: {content}")
 
-            # --- LÓGICA CORREGIDA ---
-            # Todas las acciones del menú (botones/listas) tienen un ID (content)
-            # que comienza con alguna de estas IDs
-            
+            # --- LÓGICA DE MANEJO DE ACCIONES ---
             if (
                 content == "next_page" or
                 content == "prev_page" or
@@ -147,14 +148,13 @@ async def received_message(request: Request):
                 content == "seguir_agregando" or
                 content == "finalizar_pedido" or
                 content.startswith("producto_") or
-                content.startswith("filtro_") # ✅ Maneja la respuesta de la selección de categoría
+                content.startswith("filtro_")
             ):
                 # Delega toda la lógica en Chat.manejar_accion
-                # Ahora maneja_accion acepta estos argumentos (corregido en Chat.py)
                 nuevo_mensaje = chat.manejar_accion( 
                     accion_id=content,
                     cliente=number,
-                    ubicacion=(0.0, 0.0) # Usar ubicación por defecto por ahora
+                    ubicacion=(0.0, 0.0)
                 )
 
                 # Armamos el payload según el tipo (text, button o interactive list)
@@ -179,4 +179,6 @@ async def received_message(request: Request):
 # --------------------------------------------------------
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # ✅ Usa el puerto de Railway dinámicamente
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
