@@ -12,7 +12,7 @@ app = FastAPI()
 
 # --- CREDENCIALES Y CONFIGURACIÓN ---
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", "")
-PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID", os.getenv("APP_ID", ""))
+PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID", "")
 VERSION = os.getenv("VERSION", "v22.0")
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "")
 RECIPIENT_PHONE = os.getenv("RECIPIENT_PHONE", "")
