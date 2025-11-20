@@ -157,16 +157,19 @@ async def received_message(request: Request):
 
             # --- LÓGICA DE MANEJO DE ACCIONES ---
             if (
-                content == "next_page" or
-                content == "prev_page" or
-                content == "ordenar" or
-                content == "filtrar_categoria" or
-                content == "go_first_page" or
-                content == "seguir_agregando" or
-                content == "finalizar_pedido" or
-                content.startswith("producto_") or
-                content.startswith("filtro_")
+                content in {
+                    "next_page",
+                    "prev_page",
+                    "ordenar",
+                    "filtrar_categoria",
+                    "go_first_page",
+                    "seguir_agregando",
+                    "finalizar_pedido"
+                }
+                or (isinstance(content, str) and content.startswith("producto_"))
+                or (isinstance(content, str) and content.startswith("filtro_"))
             ):
+
                 # Delega toda la lógica en Chat.manejar_accion
                 nuevo_mensaje = chat.manejar_accion( 
                     accion_id=content,
