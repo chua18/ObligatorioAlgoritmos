@@ -46,7 +46,7 @@ class GrafoPedidos:
                 key=lambda n: distancias[n],
                 default=None
             )
-
+##
             if nodo_actual is None:
                 break
 
