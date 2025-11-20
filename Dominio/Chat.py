@@ -55,7 +55,7 @@ class Chat:
         # Si hay un filtro activo, mostrar opción para quitarlo directamente
         if self.categoria_actual:
             rows_acciones.insert(0, {
-                "id": "remove_filter",
+                "id": "go_first_page",
                 "title": "❌ Quitar filtro"
             })
         # Acciones fijas
@@ -141,11 +141,8 @@ class Chat:
             self.pagina_actual -= 1
         elif accion_id == "go_first_page":
             self.pagina_actual = 1
+            self.categoria_actual = None
             
-        elif accion_id == "remove_filter":
-            self.pagina_actual = 1
-            self.categoria_actual = None # Quita el filtro al volver al inicio
-
         # Ordenamiento
         elif accion_id == "ordenar":
             if self.orden_por_precio == "asc":
