@@ -66,11 +66,18 @@ async def send_menu(to: str, nombre: str = "Cliente") -> None:
 # HELPER PARA ARMAR EL PAYLOAD SEGÚN EL TIPO
 # --------------------------------------------------------
 def build_whatsapp_payload(to: str, msg: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Recibe el dict que devuelve Chat (list/button/text)
-    y lo transforma en el payload correcto para la API de WhatsApp.
-    """
     msg_type = msg.get("type")
+
+    # --- Si es un mensaje de texto ---
+    if msg_type == "text":
+        return {
+            "messaging_product": "whatsapp",
+            "to": to,
+            "type": "text",
+            "text": msg["body"]
+        }
+
+    # --- Si es un mensaje con botones ---
     if msg_type == "button":
         return {
             "messaging_product": "whatsapp",
@@ -79,27 +86,27 @@ def build_whatsapp_payload(to: str, msg: Dict[str, Any]) -> Dict[str, Any]:
             "interactive": {
                 "type": "button",
                 "body": msg["body"],
-                "action": {
-                    "buttons": [
-                        {
-                            "type": "reply",
-                            "reply": {
-                                "id": b["reply"]["id"],
-                                "title": b["reply"]["title"]
-                            }
-                        }
-                        for b in msg["action"]["buttons"]
-                    ]
-                }
+                "action": msg["action"]
             }
         }
-    # Cualquier otro ("list", "button", etc.) va como interactive
+
+    # --- Cualquier lista interactiva ---
+    if msg_type == "list":
+        return {
+            "messaging_product": "whatsapp",
+            "to": to,
+            "type": "interactive",
+            "interactive": msg
+        }
+
+    # Fallback
     return {
         "messaging_product": "whatsapp",
         "to": to,
         "type": "interactive",
         "interactive": msg
     }
+
 
 
 # --------------------------------------------------------
