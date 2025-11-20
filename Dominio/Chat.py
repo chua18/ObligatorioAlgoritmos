@@ -212,8 +212,11 @@ class Chat:
 
         # Selección de producto
         elif accion_id.startswith("producto_"):
-            producto_id = int(accion_id.replace("producto_", ""))
-            producto = next((p for p in menuCompleto if p["id"] == producto_id), None)
+            producto_id_str = accion_id.replace("producto_", "")
+            producto = next(
+                (p for p in menuCompleto if str(p["id"]) == producto_id_str),
+                None
+            )
             if not producto:
                 return {"type": "text", "body": {"text": "❌ Producto no encontrado"}}
 
