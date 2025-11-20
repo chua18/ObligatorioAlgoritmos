@@ -52,7 +52,12 @@ class Chat:
         
         if self.pagina_actual >= 3:
             rows_acciones.insert(0, {"id": "go_first_page", "title": "🔁 Volver al inicio"})
-
+        # Si hay un filtro activo, mostrar opción para quitarlo directamente
+        if self.categoria_actual:
+            rows_acciones.insert(0, {
+                "id": "remove_filter",
+                "title": "❌ Quitar filtro"
+            })
         # Acciones fijas
         rows_acciones.append({"id": "ordenar", "title": "↕️ Ordenar precio"})
         rows_acciones.append({"id": "filtrar_categoria", "title": "📂 Filtrar por categoría"})
@@ -136,6 +141,9 @@ class Chat:
             self.pagina_actual -= 1
         elif accion_id == "go_first_page":
             self.pagina_actual = 1
+            
+        elif accion_id == "remove_filter":
+            self.pagina_actual = 1
             self.categoria_actual = None # Quita el filtro al volver al inicio
 
         # Ordenamiento
@@ -159,13 +167,7 @@ class Chat:
 
             filas = []
 
-            # Mostrar opción para quitar filtro si hay uno activo
-            if self.categoria_actual:
-                filas.append({
-                    "id": "go_first_page",
-                    "title": "❌ Quitar filtro"
-                })
-
+           
             # Agregar categorías
             for cat in categorias:
                 filas.append({
