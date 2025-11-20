@@ -71,19 +71,28 @@ def build_whatsapp_payload(to: str, msg: Dict[str, Any]) -> Dict[str, Any]:
     y lo transforma en el payload correcto para la API de WhatsApp.
     """
     msg_type = msg.get("type")
-
-    # Mensaje de texto simple
-    if msg_type == "text":
-        texto = msg["body"]["text"]
+    if msg_type == "button":
         return {
             "messaging_product": "whatsapp",
             "to": to,
-            "type": "text",
-            "text": {
-                "body": texto
+            "type": "interactive",
+            "interactive": {
+                "type": "button",
+                "body": msg["body"],
+                "action": {
+                    "buttons": [
+                        {
+                            "type": "reply",
+                            "reply": {
+                                "id": b["reply"]["id"],
+                                "title": b["reply"]["title"]
+                            }
+                        }
+                        for b in msg["action"]["buttons"]
+                    ]
+                }
             }
         }
-
     # Cualquier otro ("list", "button", etc.) va como interactive
     return {
         "messaging_product": "whatsapp",

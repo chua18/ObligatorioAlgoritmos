@@ -96,17 +96,30 @@ class Chat:
     def agregar_producto_al_carrito(self, producto: Dict[str, Any]):
         self.carrito.append(producto)
 
-    def generar_mensaje_post_seleccion_producto(self, producto: Dict[str, Any]) -> Dict[str, Any]:
+    def generar_mensaje_post_seleccion_producto(self, producto):
         return {
-            "type": "button",
+            "type": "button",  
             "body": {"text": f"🛒 *{producto['nombre']}* agregado.\n¿Qué querés hacer ahora?"},
             "action": {
                 "buttons": [
-                    {"type": "reply", "reply": {"id": "seguir_agregando", "title": "➕ Agregar otro"}},
-                    {"type": "reply", "reply": {"id": "finalizar_pedido", "title": "✔️ Finalizar pedido"}}
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "seguir_agregando",
+                            "title": "➕ Agregar otro"
+                        }
+                    },
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "finalizar_pedido",
+                            "title": "✔️ Finalizar pedido"
+                        }
+                    }
                 ]
             }
         }
+
 
     def finalizar_pedido_en_grafo(self, cliente: str, ubicacion=(0.0, 0.0)):
         if not self.carrito:
